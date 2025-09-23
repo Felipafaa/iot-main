@@ -1,78 +1,94 @@
 import cv2
 import torch
-import numpy as np
-import csv
 from datetime import datetime
+from flask import Flask, render_template, Response
+import os
+import csv 
+
+
+app = Flask(__name__)
+
 
 model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 TARGET_CLASS = 'motorcycle'
-def draw_motorcycles(image, results):
-    motorcycles = []
-
-    for *box, conf, cls in results.xyxy[0]:
-        class_name = model.names[int(cls)]
-        if class_name == TARGET_CLASS:
-            x1, y1, x2, y2 = map(int, box)
-            center_x = (x1 + x2) // 2
-            center_y = (y1 + y2) // 2
-
-            motorcycles.append((center_x, center_y))
-
-            cv2.rectangle(image, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.circle(image, (center_x, center_y), 5, (0, 0, 255), -1)
-            cv2.putText(image, f"Moto ({center_x}, {center_y})", (x1, y1 - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-
-    return image, motorcycles
 
 
-def salvar_deteccoes_frame(csv_writer, results, target_class_name):
-    """
-    Itera sobre os resultados e escreve as detecções de motos no CSV.
-    """
-    for *box, conf, cls in results.xyxy[0]:
-        class_name = model.names[int(cls)]
-        if class_name == target_class_name:
-            x1, y1, x2, y2 = map(int, box)
-            center_x = (x1 + x2) // 2
-            center_y = (y1 + y2) // 2
-            
-            
-            csv_writer.writerow([datetime.now(), class_name, float(conf), center_x, center_y])
+VIDEO_SOURCE = 'ssstik.io_@sobrerodasbrofc_1758598609723.mp4' 
 
-
-VIDEO_SOURCE = 'ssstik.io_@sobrerodasbrofc_1758598609723.mp4'
-cap = cv2.VideoCapture(VIDEO_SOURCE)
-
-if not cap.isOpened():
-    print(f"Erro ao abrir o vídeo: {VIDEO_SOURCE}")
-    exit()
-
-arquivo_csv = "detecoes.csv"
-
-with open(arquivo_csv, mode="a", newline="", encoding="utf-8") as f:
+def processar_frames():
+    cap = cv2.VideoCapture(VIDEO_SOURCE)
+    if not cap.isOpened():
+        print(f"Erro ao abrir o vídeo: {VIDEO_SOURCE}")
+        return
+    arquivo_csv = "detecoes.csv"
     
-    writer = csv.writer(f)
-    f.seek(0, 2)
-    if f.tell() == 0:
-        writer.writerow(["Timestamp", "Classe", "Confianca", "Centro_X", "Centro_Y"])
-
-    print("Processando vídeo... Pressione 'q' na janela para sair.") 
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            print("Fim do vídeo ou erro na captura.")
-            break
-        results = model(frame)
-       
-        output_image, motos_posicoes = draw_motorcycles(frame, results)
+    with open(arquivo_csv, mode='a', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
         
     
-        salvar_deteccoes_frame(writer, results, TARGET_CLASS)
-    
-        cv2.imshow("Deteccao de Motos em Tempo Real", output_image)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-cap.release()
-cv2.destroyAllWindows()
-print(f"Processamento concluído. Detecções salvas em {arquivo_csv}")
+        f.seek(0, 2)
+        if f.tell() == 0:
+            writer.writerow(["Timestamp", "Classe", "Confianca", "Centro_X", "Centro_Y"])
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+
+            results = model(frame)
+            for *box, conf, cls in results.xyxy[0]:
+                class_name = model.names[int(cls)]
+                if class_name == TARGET_CLASS and float(conf) > 0.5:
+                    x1, y1, x2, y2 = map(int, box)
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                    cv2.putText(frame, f"{class_name} {conf:.2f}", (x1, y1 - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                    
+                    center_x = (x1 + x2) // 2
+                    center_y = (y1 + y2) // 2
+                    
+                    print(f"[BACKEND SIMULADO] Detecção recebida: Timestamp={datetime.now().isoformat()}, X={center_x}, Y={center_y}")
+
+                
+                    timestamp = datetime.now().isoformat()
+                    writer.writerow([timestamp, class_name, f"{float(conf):.2f}", center_x, center_y])
+
+            (flag, encodedImage) = cv2.imencode(".jpg", frame)
+            if not flag:
+                continue
+            
+            yield(b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + 
+                  bytearray(encodedImage) + b'\r\n')
+    cap.release()
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/video_feed')
+def video_feed():
+    return Response(processar_frames(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+if __name__ == '__main__':
+    html_template = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Dashboard de Detecção de Motos</title>
+        <style>
+            body { font-family: Arial, sans-serif; text-align: center; background-color: #f0f0f0; }
+            h1 { color: #333; }
+            img { border: 2px solid #333; margin-top: 20px; max-width: 80%; }
+        </style>
+    </head>
+    <body>
+        <h1>Dashboard - Detecção de Motos em Tempo Real</h1>
+        <img src="{{ url_for('video_feed') }}">
+    </body>
+    </html>
+    """
+    if not os.path.exists('templates'):
+        os.makedirs('templates')
+    with open('templates/index.html', 'w', encoding='utf-8') as f:
+        f.write(html_template)
+    app.run(debug=True)
