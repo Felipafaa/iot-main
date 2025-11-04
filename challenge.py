@@ -20,7 +20,13 @@ def processar_frames():
     if not cap.isOpened():
         print(f"Erro ao abrir o vídeo: {VIDEO_SOURCE}")
         return
-    arquivo_csv = "detecoes.csv"
+    
+    # --- ALTERAÇÃO 1: Caminho do CSV ---
+    # Aponta para o disco persistente que será montado no Azure
+    arquivo_csv = "/mnt/data/detecoes.csv"
+    
+    # Garante que o diretório de montagem existe antes de tentar escrever
+    os.makedirs(os.path.dirname(arquivo_csv), exist_ok=True)
     
     with open(arquivo_csv, mode='a', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
@@ -29,6 +35,7 @@ def processar_frames():
         f.seek(0, 2)
         if f.tell() == 0:
             writer.writerow(["Timestamp", "Classe", "Confianca", "Centro_X", "Centro_Y"])
+        
         while cap.isOpened():
             ret, frame = cap.read()
             if not ret:
@@ -91,4 +98,8 @@ if __name__ == '__main__':
         os.makedirs('templates')
     with open('templates/index.html', 'w', encoding='utf-8') as f:
         f.write(html_template)
-    app.run(debug=True)
+    
+    # --- ALTERAÇÃO 2: Configuração do Servidor ---
+    # 'host=0.0.0.0' é obrigatório para o Azure acessar o app dentro do container
+    # 'debug=False' é a prática correta para produção
+    app.run(debug=False, host='0.0.0.0', port=5000)
