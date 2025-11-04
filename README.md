@@ -1,69 +1,111 @@
-# Projeto: Dashboard de Detecção de Motocicletas com YOLOv5 e Flask
+# Projeto: Dashboard de Detecção de Motocicletas com YOLOv5 e Deploy no Azure
+
+## 🚀 Resultado Final (Deploy em Nuvem)
+
+A aplicação está em execução na nuvem Microsoft Azure e pode ser acedida aqui:
+
+**seu-app-iot-fiap-f0hgg6dsd3g4epck.brazilsouth-01.azurewebsites.net** 
 
 ## 📖 Descrição
-1.  Detectar motocicletas em um fluxo de vídeo em tempo real.
-2.  Exibir as detecções em um dashboard web amigável.
-3.  Simular o envio de dados estruturados para um backend.
-4.  Persistir todas as detecções em um arquivo CSV para análise futura.
 
-## ✨ Features
-* **Dashboard em Tempo Real:** Interface web construída com Flask que transmite o vídeo processado diretamente para o navegador.
-* **Simulação de Backend:** A cada detecção, os dados são impressos no console do servidor, simulando o recebimento por um endpoint de API.
-* **Persistência de Dados:** Todas as detecções são salvas de forma estruturada em um arquivo `detecoes.csv`, incluindo timestamp, confiança e coordenadas.
-* **Setup Simplificado:** O script gera automaticamente o arquivo HTML necessário para o dashboard, simplificando a configuração.
+Este projeto detecta motocicletas num fluxo de vídeo em tempo real e exibe as deteções num dashboard web amigável.
+
+Esta solução foi desenvolvida para o Challenge da FIAP, com foco especial na integração entre **Visão Computacional (IoT)**, **DevOps** e **Cloud**.
+
+As funcionalidades incluem:
+
+* **Dashboard em Tempo Real:** Interface web construída com Flask que transmite o vídeo processado.
+
+* **Simulação de Backend:** A cada deteção, os dados são impressos no console do servidor (visível no Log Stream do Azure).
+
+* **Persistência de Dados na Nuvem:** Todas as deteções são salvas de forma estruturada e persistente num arquivo (`detecoes.csv`) no **Azure File Storage**, cumprindo o requisito de integração com "Banco de Dados".
 
 ## 🛠️ Tecnologias Utilizadas
-[cite_start]O projeto foi construído utilizando as seguintes tecnologias[cite: 26]:
-* **Linguagem:** Python 3
+
+O projeto foi construído utilizando as seguintes tecnologias, integrando múltiplas disciplinas:
+
+### Aplicação (Core)
+
+* **Linguagem:** Python 3.10
+
 * **Framework Web:** Flask
-* [cite_start]**Modelo de IA:** YOLOv5 (da Ultralytics) para detecção de objetos[cite: 13].
-* **Bibliotecas Principais:**
-    * **OpenCV:** Para manipulação de vídeo e imagens.
-    * **PyTorch:** Para carregar e executar o modelo YOLOv5.
-    * **CSV:** Para a persistência dos dados.
 
-## 🚀 Instruções de Uso
-[cite_start]Siga os passos abaixo para configurar e executar o projeto em seu ambiente local[cite: 26].
+* **Modelo de IA:** YOLOv5 (da Ultralytics)
 
-**1. Clonar o Repositório**
-```bash
-# Clone este repositório para a sua máquina local
-git clone [https://github.com/Felipafaa/iot-main.git](https://github.com/Felipafaa/iot-main.git)
-cd seu-repositorio
-```
+* **Bibliotecas de Visão:** OpenCV, PyTorch, Pillow
 
-**2. Instalar as Dependências**
-É altamente recomendado criar um ambiente virtual (`venv`). Depois, instale as bibliotecas a partir do arquivo `requirements.txt`.
-```bash
-# Crie e ative um ambiente virtual (Opcional, mas recomendado)
+* **Análise de Dados:** Pandas, Numpy
+
+### DevOps & Cloud (Integração)
+
+* **Containerização:** Docker
+
+* **CI/CD:** GitHub Actions
+
+* **Plataforma de Nuvem (PaaS):** Microsoft Azure
+
+* **Serviço de Aplicação:** Azure App Service (para rodar o container)
+
+* **Registro de Imagem:** Azure Container Registry (ACR)
+
+* **Persistência de Dados:** Azure File Storage (para salvar o `.csv`)
+
+## 🚀 Arquitetura da Solução (Fluxo DevOps)
+
+A integração e entrega contínua (CI/CD) deste projeto segue um fluxo profissional de DevOps:
+
+1. **Commit/Push:** O desenvolvedor envia o código (`Dockerfile`, `challenge.py`, etc.) para a branch `main` do GitHub.
+
+2. **CI (Build):** O **GitHub Actions** é acionado automaticamente. Ele constrói a imagem Docker com todas as dependências (PyTorch, OpenCV, Flask, etc.).
+
+3. **Registro:** Após o build, o GitHub Actions envia (push) a imagem de container para o **Azure Container Registry (ACR)**.
+
+4. **CD (Deploy):** O **Azure App Service** deteta que uma nova imagem (`:latest`) está disponível no ACR e automaticamente reinicia o serviço, baixando e executando o novo container.
+
+5. **Persistência:** A aplicação em execução no App Service salva todas as deteções no caminho `/mnt/data/detecoes.csv`, que está mapeado para o **Azure File Storage**, garantindo que os dados não sejam perdidos.
+
+## ✅ Resultados FINAIS
+
+Ao aceder ao link do Azure, você observará os requisitos da entrega:
+
+1. **Dashboard Web:** No navegador, o vídeo é exibido com as deteções em tempo real, servido diretamente pelo Azure.
+
+2. **Console (Simulação de Backend):** No portal do Azure, o "Fluxo de Log" (Log Stream) do App Service mostra as mensagens estruturadas de cada deteção sendo impressas.
+
+3. **Arquivo `detecoes.csv`:** No portal do Azure, dentro da "Conta de Armazenamento" (`seustorageiotfiap`), o arquivo CSV é populado em tempo real com os dados de todas as motocicletas detectadas.
+
+## 🔧 Instruções de Uso (Local)
+
+Embora o projeto esteja focado na nuvem, ele ainda pode ser executado localmente.
+
+1. **Clonar o Repositório**
+
+
+
+git clone https://github.com/Felipafaa/iot-main.git
+cd iot-main
+
+
+2. **Instalar as Dependências (com venv)**
+
+
+
+Crie e ative um ambiente virtual
+
 python -m venv venv
 source venv/bin/activate  # No Windows: venv\Scripts\activate
 
-# Instale as dependências
+Instale as dependências
+
 pip install -r requirements.txt
-```
-*(Se não tiver o arquivo `requirements.txt`, crie-o com `pip freeze > requirements.txt` após instalar as bibliotecas manualmente: `pip install Flask torch opencv-python numpy`)*
 
-**3. Configurar a Fonte de Vídeo**
-Abra o arquivo principal (`app.py` ou `challenge.py`) e altere a variável `VIDEO_SOURCE` para a fonte desejada:
-```python
-# Use 0 para a webcam ou o caminho para um arquivo de vídeo
-VIDEO_SOURCE = 'seu_video.mp4'  # <-- MUDE AQUI
-```
 
-**4. Executar a Aplicação**
-Com tudo configurado, inicie o servidor Flask:
-```bash
-python app.py
-```
+3. **Executar a Aplicação**
 
-**5. Acessar o Dashboard**
-Abra seu navegador e acesse o seguinte endereço:
-[http://127.0.0.1:5000](http://127.0.0.1:5000)
 
-## ✅ Resultados Parciais
-[cite_start]Ao executar o projeto, você observará três saídas simultâneas, cumprindo todos os requisitos[cite: 26]:
 
-1.  **Dashboard Web:** No seu navegador, o vídeo será exibido com as detecções em tempo real.
-2.  **Console (Simulação de Backend):** No terminal onde você executou o script, mensagens estruturadas de cada detecção serão impressas.
-3.  **Arquivo `detecoes.csv`:** Na pasta do projeto, o arquivo CSV será criado e populado com os dados de todas as motocicletas detectadas.
+python challenge.py
+
+
+4. **Acessar o Dashboard Local**
+Abra seu navegador e acesse: `http://127.0.0.1:5000`
