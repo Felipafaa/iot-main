@@ -1,15 +1,34 @@
+#Dependências do Flask
+
 flask
+
+#Dependências do PyTorch e OpenCV
+
 torch
 torchvision
 opencv-python
+
+#Dependências do YOLOv5 (Baseado no repo oficial e nos erros)
+
+#Pacotes base
+
 numpy
-ultralytics
-pandas
-tqdm
 matplotlib
 pillow
 PyYAML
 requests
 scipy
-gitpython
 psutil
+tqdm
+
+#Pacotes do Ultralytics/YOLO
+
+ultralytics
+gitpython
+pandas
+seaborn
+thop
+
+#Fix para conflitos comuns
+
+protobuf<=3.20.1
