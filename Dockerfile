@@ -29,4 +29,4 @@ EXPOSE 5000
 # Inicia sua aplicação. 
 # O '--host=0.0.0.0' é OBRIGATÓRIO para que o Flask seja acessível
 # fora do container.
-CMD ["python", "app.py"]
+CMD ["python", "challenge.py"]
