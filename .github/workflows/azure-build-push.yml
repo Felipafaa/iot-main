@@ -1,0 +1,30 @@
+name: Construir e Enviar Docker para Azure
+
+# Dispara este workflow em qualquer push para a branch "main"
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Baixa o código do seu repositório
+      - name: Checar código
+        uses: actions/checkout@v3
+
+      # 2. Faz login no seu Azure Container Registry (ACR)
+      - name: Fazer login no Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          # Usa os "Secrets" que vamos configurar no GitHub
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      # 3. Constrói e envia a imagem Docker
+      - name: Construir e enviar imagem para ACR
+        run: |
+          docker build . -t ${{ secrets.ACR_LOGIN_SERVER }}/iot-main:latest
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/iot-main:latest
