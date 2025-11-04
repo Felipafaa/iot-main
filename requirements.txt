@@ -1,6 +1,15 @@
 flask
 torch
+torchvision
 opencv-python
 numpy
 ultralytics
 pandas
+tqdm
+matplotlib
+pillow
+PyYAML
+requests
+scipy
+gitpython
+psutil
