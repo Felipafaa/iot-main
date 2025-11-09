@@ -1,8 +1,26 @@
+## 📋 Entrega da Sprint 4 - Quality Assurance & Tests
+
+Conforme solicitado, seguem os links obrigatórios para a avaliação da Sprint 4:
+
+* **Repositório GitHub:** (https://github.com/Felipafaa/iot-main.git)
+* **Plano de Testes (Azure DevOps):** (https://dev.azure.com/RM557636/MotoMap%20-%20P%C3%A1tio%20Inteligente%20Mottu/_testPlans/define?planId=39&suiteId=42)
+* **Vídeo de Execução dos Testes Automatizados:** (https://youtu.be/wRdappj_7NM)
+
+---
+
+
+
+
+
+
 # Projeto: Dashboard de Detecção de Motocicletas com YOLOv5 e Deploy no Azure
 
 ## 🚀 Resultado Final (Deploy em Nuvem)
 
 A aplicação está em execução na nuvem Microsoft Azure e pode ser acedida aqui:
+
+
+
 
 **seu-app-iot-fiap-f0hgg6dsd3g4epck.brazilsouth-01.azurewebsites.net** 
 
